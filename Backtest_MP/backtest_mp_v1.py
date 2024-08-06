@@ -98,3 +98,107 @@ class EightyPercent(Strategy):
 backtest = Backtest(merged_df2, EightyPercent, cash=50_000, trade_on_close=True)
 stats = backtest.run()
 print(stats)
+
+# part 2 visualisation
+trades = stats['_trades']
+trades['color'] = np.where(trades.Size > 0, 'limegreen', 'magenta')
+trades['color'] = trades['color'].astype(str)
+
+merged_df2['color_power'] = np.where(merged_df2['power1']>0,'green','red')
+merged_df2['color_power'] = merged_df2['color_power'].astype(str)
+
+merged_list = [group[1] for group in merged_df2.groupby(merged_df2.index.date)]
+
+fig = make_subplots(rows=2, cols=1, shared_xaxes=True, row_heights=[0.70, 0.30],
+                    vertical_spacing=0.003,horizontal_spacing=0.0003,
+                    specs=[[{"secondary_y": False}], [{"secondary_y": False}]])
+
+fig.add_trace(go.Candlestick(x=merged_df2.index,
+                                     open=merged_df2['Open'],
+                                     high=merged_df2['High'],
+                                     low=merged_df2['Low'],
+                                     close=merged_df2['Close'],
+                                     showlegend=False,
+                                     name="NiftySpot", opacity=0.3), row=1, col=1)
+fig.add_trace(
+    go.Bar(
+        x=merged_df2.index,
+        y=merged_df2['power1'],
+        name='DailyStrength',
+        showlegend=False,
+        marker=dict(
+            color=merged_df2['color_power'],  # Using the column values for color
+            #colorscale='Viridis',  # Specify the desired color scale
+        )
+    ),
+    secondary_y=False, col=1, row=2)
+
+for df in merged_list:
+    hovertext_vah = (f"VAH: {df.iloc[0]['VAH']}<br>"
+)
+
+    fig.add_trace(go.Scatter(
+        x=[df.iloc[0]['date'], df.iloc[-1]['date']],
+        y=[df.iloc[0]['VAH'], df.iloc[0]['VAH']],
+        mode='lines',
+        line=dict(color='green',
+                  width=1,
+                  dash = 'dot'),
+        hovertext=hovertext_vah,
+        hoverinfo='text',
+        showlegend=False
+    ))
+
+    hovertext_val = (f"VAL: {df.iloc[0]['VAL']}<br>"
+                     )
+
+    fig.add_trace(go.Scatter(
+        x=[df.iloc[0]['date'], df.iloc[-1]['date']],
+        y=[df.iloc[0]['VAL'], df.iloc[0]['VAL']],
+        mode='lines',
+        line=dict(color='red',
+                  width=1,
+                  dash='dot'),
+        hovertext=hovertext_val,
+        hoverinfo='text',
+        showlegend=False
+    ))
+
+for j in range(len(trades)):
+    hovertext_trades = (f"EntryPrice: {trades.iloc[j]['EntryPrice']}<br>"
+                 f"Size: {trades.iloc[j]['Size']}<br>"
+                 f"ExitPrice: {trades.iloc[j]['ExitPrice']}<br>"
+                 f"PnL: {trades.iloc[j]['PnL']}")
+
+    fig.add_trace(go.Scatter(
+        x=[trades.iloc[j]['EntryTime'], trades.iloc[j]['ExitTime']],
+        y=[trades.iloc[j]['EntryPrice'], trades.iloc[j]['ExitPrice']],
+        mode='lines',
+        line=dict(color=trades['color'][j],
+                  width=3,
+                  #dash = 'dot'
+                  ),
+        hovertext=hovertext_trades,
+        hoverinfo='text',
+        showlegend=False
+    ))
+
+fig.update_xaxes(showline=False, color='white', showgrid=False, showticklabels=False,
+                 type='category',rangeslider_visible=False,
+                    tickangle=90, zeroline=False, col=1,row=1)
+
+fig.update_xaxes(showline=False, color='white', showgrid=False, showticklabels=False,
+                 type='category',rangeslider_visible=False,
+                    tickangle=90, zeroline=False, col=1,row=2)
+
+fig.update_yaxes(color='white', showgrid=False,
+                    zeroline=False, showticklabels=True,row=1,col=1, tickformat = ',d')
+
+fig.update_yaxes(color='white', showgrid=False,
+                    zeroline=False, showticklabels=True,row=2,col=1, tickformat = ',d')
+
+fig.update_layout(paper_bgcolor='black',plot_bgcolor='black',
+                  autosize=True,uirevision=True
+                  )
+
+plot(fig)
