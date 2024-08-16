@@ -21,13 +21,13 @@ def btextra(df, trades, freq):
                                 direction='nearest')
 
     """
-    This code snippet is iterating over a list of trades and calculating the maximum notional 
-    loss and maximum notional gain within a specific time range for each trade. 
+    This code snippet iterates over a list of trades and calculates the maximum notional 
+    loss (Max Adverse Excursion) and maximum notional gain (Max Favorable Excursion) within a specific time range for each trade. 
     The `merged_df2` DataFrame is being sliced based on the entry and exit times of each trade.
      The `Low.min()` and `High.max()` functions are used to find the minimum and maximum values 
      of the `Low` and `High` columns within the specified time range. 
     The calculated values are then appended to the `maxloss` and `maxgain` lists respectively.
-    Timedelta is used so it will exclude entry and exit bar. 
+    Timedelta is used so it will exclude the entry and exit bar. 
     """
     maxloss = []
     maxgain = []
@@ -138,7 +138,7 @@ def btextra(df, trades, freq):
     fig.update_yaxes(title='Notional_Profit%', color='white', showgrid=False,
                      showticklabels=True, row=1, col=1)
 
-    fig.update_layout(title='NotionalLoss vs NotionalProfit', paper_bgcolor='black',
+    fig.update_layout(title='NotionalLoss(MAE) vs NotionalProfit(MFE)', paper_bgcolor='black',
                       plot_bgcolor='black',
                       autosize=True, uirevision=True
                       )
